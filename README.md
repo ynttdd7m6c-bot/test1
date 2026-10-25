@@ -46,6 +46,23 @@ npm test
 
 要正式使用，必须将前端和 `/api` 同源部署到下面的完整服务地址。**不得把真实业务数据、导出文件、数据库或账号凭据提交到公开仓库或 Pages。**
 
+## Render 一键部署（付费服务与磁盘）
+
+[在 Render 中创建完整服务](https://render.com/deploy?repo=https://github.com/ynttdd7m6c-bot/test1)
+
+仓库的 `render.yaml` 已配置 Docker Web Service、Starter 套餐、Singapore 区域、健康检查及 1 GB 持久化磁盘。**请先查看 Render 页面上的服务与磁盘费用，再决定是否确认创建；本仓库不提供免费持久化托管，也不会替你确认付款。**
+
+1. 打开上述链接，以 GitHub 账号登录 Render，按提示连接此仓库并检查 Blueprint。
+2. 检查配置与费用后，由你在 Render 确认部署。等待服务状态变为 Live；仅提交 GitHub 代码不代表后端已上线。
+3. 从服务页面打开 **Shell**，运行 `npm run create-admin`，交互输入新的工作空间账号、显示名称和密码。密码不回显；不要使用 GitHub、淘宝或支付宝密码，也不要把密码发在聊天中。
+4. 使用 Render 服务页面显示的 HTTPS 地址登录。正式前端与 API 共用这个新地址；旧 GitHub Pages 地址仍不能进行后端登录。
+
+服务会自动采用 Render 注入的 `RENDER_EXTERNAL_URL` 作为可信来源，不需猜测服务域名。使用自定义域名时，在 Render 环境变量中设置精确的 `APP_ORIGIN=https://你的域名`（不带末尾 `/`），并从该域名访问。`PORT=3001` 与 Docker 健康检查保持一致；数据库挂载在 `/app/data`，镜像更新时需要保留磁盘。
+
+验证标准：匿名访问 `/api/dashboard` 返回 401；管理员可登录及创建成员；只读成员无法导出或修改设置；服务重启后账号与设置仍保留。新建磁盘在实际平台上的写入权限、证书和访问连通性必须在部署后确认，不能仅根据本地容器测试宣布线上就绪。
+
+当前云会话若未连接 Render 授权或浏览器控制工具，就无法代替你在 Render 创建资源、确认计费或读取服务部署结果。不要在聊天中发送 API 密钥。
+
 ## 带 HTTPS 的完整部署
 
 已提供 Dockerfile、Docker Compose 与 Caddy 配置。需要你自己的 Linux 服务器、Docker Compose 和指向该服务器的域名；此项目没有替你购买或开通托管服务。
@@ -62,7 +79,7 @@ docker compose exec app npm run create-admin
 4. 用 `https://你的域名` 登录。Caddy 自动申请和续期 HTTPS 证书；证书签发依赖有效 DNS 和公网 80/443 连通性。
 5. 使用管理员创建分析员、只读成员；分别验证权限。`GET /api/health` 检查服务存活，未登录请求 `/api/dashboard` 应返回 401。
 
-生产模式必须设置 HTTPS 的 `APP_ORIGIN`（不带末尾 `/`）。Compose 自动使用 `https://SITE_DOMAIN`。`TRUST_PROXY=1` 仅用于当前单层可信 Caddy 代理；不要将应用直接暴露到公网或在任意代理后盲目开启，否则限流 IP 可能失真。
+生产模式必须使用 HTTPS 的可信来源（不带末尾 `/`）：普通服务器设置 `APP_ORIGIN`，Render 可自动使用平台注入的网址。Compose 自动使用 `https://SITE_DOMAIN`。`TRUST_PROXY=1` 仅用于当前单层可信 Caddy 代理；不要将应用直接暴露到公网或在任意代理后盲目开启，否则限流 IP 可能失真。
 
 Docker 构建、证书签发及公网部署需在实际服务器执行；本云工作区的本地 API 验证不代表已经上线。
 

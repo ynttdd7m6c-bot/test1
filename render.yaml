@@ -1,0 +1,26 @@
+# This blueprint creates a PAID service with persistent storage.
+# Review the current service and disk charges in Render before applying it.
+services:
+  - type: web
+    name: ali-insight-test1
+    runtime: docker
+    branch: main
+    autoDeployTrigger: checksPass
+    plan: starter
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DB_PATH
+        value: /app/data/ali-insight.sqlite
+    disk:
+      name: ali-insight-data
+      mountPath: /app/data
+      sizeGB: 1
